@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 
 import PostCard from '@/components/PostCard.vue'
 import UserCard from '@/components/UserCard.vue'
@@ -11,52 +11,55 @@ import { getComments } from '@/api/comments'
 import { getUsers } from '@/api/users'
 import { filterData } from '@/lib/utils'
 
-const queryRef = ref(null)
-const posts = ref(null)
-const comments = ref(null)
-const users = ref(null)
-const filteredPosts = ref(null)
-const filteredComments = ref(null)
-const filteredUsers = ref(null)
+const queryRef = ref('')
+const posts = ref([])
+const comments = ref([])
+const users = ref([])
 
-watch(queryRef, q => fetchData(q), { immediate: true })
+const filteredPosts = ref([])
+const filteredComments = ref([])
+const filteredUsers = ref([])
 
-async function fetchData(q) {
+const fetchData = async () => {
   try {
-    const postPromise = getPosts()
-    const commentPromise = getComments()
-    const userPromise = getUsers()
-
     const [postRes, commentRes, userRes] = await Promise.all([
-      postPromise,
-      commentPromise,
-      userPromise
+      getPosts(),
+      getComments(),
+      getUsers()
     ])
 
     posts.value = await postRes.json()
     comments.value = await commentRes.json()
     users.value = await userRes.json()
 
-    const [_filteredPosts, _filteredComments, _filteredUsers] = filterData(
-      q,
-      posts.value,
-      comments.value,
-      users.value
-    )
-
-    filteredPosts.value = _filteredPosts
-    filteredComments.value = _filteredComments
-    filteredUsers.value = _filteredUsers
+    filteredPosts.value = posts.value
+    filteredComments.value = comments.value
+    filteredUsers.value = users.value
   } catch (err) {
     console.log(err.toString())
   }
+}
+
+fetchData()
+
+const handleSubmit = () => {
+  const [_filteredPosts, _filteredComments, _filteredUsers] = filterData(
+    queryRef.value,
+    posts.value,
+    comments.value,
+    users.value
+  )
+
+  filteredPosts.value = _filteredPosts
+  filteredComments.value = _filteredComments
+  filteredUsers.value = _filteredUsers
 }
 </script>
 
 <template>
   <div>
     <div class="post-header">
-      <form class="form">
+      <form class="form" @submit.prevent="handleSubmit">
         <input
           type="search"
           class="post-input"
@@ -65,6 +68,7 @@ async function fetchData(q) {
         />
         <button class="btn" type="submit">Filter</button>
       </form>
+
       <div class="flex">
         <Statistics
           title="Stats"
