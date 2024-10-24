@@ -18,9 +18,9 @@ export function RootLayout() {
         </ul>
       </nav>
       <ScrollRestoration />
-      <div className="container">
+      <main className="container">
         <Outlet />
-      </div>
+      </main>
     </>
   )
 }
